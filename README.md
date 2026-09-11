@@ -26,7 +26,7 @@ A lightweight trainer and cheat overlay for *Hollow Knight*, built with BepInEx.
 Follow these steps to install and run the `.dll` mod:
 
 ### Step 1: Install BepInEx (If Not Already Installed)
-1. Download **BepInEx 5.4.x (x64)**.
+1. Download **BepInEx 5.4.x (x64) (in the Files above)**.
 2. Extract all contents of the BepInEx zip directly into your main Hollow Knight folder (where `hollow_knight.exe` is located).
 3. Launch the game once to allow BepInEx to generate its folder structure, then close the game.
 
