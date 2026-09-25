@@ -10,7 +10,6 @@ A lightweight trainer and cheat overlay for *Hollow Knight*, built with BepInEx.
 - **Infinite Soul:** Keeps your SOUL vessel charged to cast spells and focus freely.
 - **One Hit Kill:** Reduces enemy health so they fall in a single strike.
 - **+1,000 Geo:** Instantly grants 1,000 Geo with a single click.
-- **Custom Frame UI:** Uses a custom Knight & Nail themed overlay.
 
 ---
 
