@@ -18,9 +18,8 @@ namespace HKmenu
         private bool _infiniteSoul;
         private bool _godMode;
         private bool _godWasOn;
-        private bool _f8Held;
+        private bool _f1Held;
         private bool _stylesReady;
-        private float _openAt;
         private Rect _window = new Rect(40, 40, FrameWidth, FrameHeight);
         private Texture2D _frame;
         private GUIStyle _title;
@@ -36,8 +35,8 @@ namespace HKmenu
         {
             Logger.LogInfo("HK Mod Menu 1.7.1 loaded");
             WriteStatus("1.7.1 awake");
-            _openAt = Time.realtimeSinceStartup + 1.2f;
             LoadFrame();
+
             var host = new GameObject("HKMenuHost");
             DontDestroyOnLoad(host);
             host.AddComponent<MenuHost>().Owner = this;
@@ -45,30 +44,23 @@ namespace HKmenu
 
         private void Update()
         {
-            if (_openAt > 0f && Time.realtimeSinceStartup >= _openAt)
-            {
-                _openAt = 0f;
-                _showMenu = true;
-                Cursor.visible = true;
-                Cursor.lockState = CursorLockMode.None;
-                WriteStatus("menu forced open");
-            }
-
-            bool f8 = (GetAsyncKeyState(0x77) & 0x8000) != 0;
-            if (f8 && !_f8Held)
+            bool f1 = (GetAsyncKeyState(0x70) & 0x8000) != 0; // F1
+            if (f1 && !_f1Held)
             {
                 _showMenu = !_showMenu;
                 Cursor.visible = true;
                 Cursor.lockState = _showMenu ? CursorLockMode.None : CursorLockMode.Locked;
-                WriteStatus(_showMenu ? "opened by F8" : "closed by F8");
+                WriteStatus(_showMenu ? "opened by F1" : "closed by F1");
             }
-            _f8Held = f8;
+            _f1Held = f1;
 
             try
             {
                 if (_infiniteSoul && HeroController.instance != null)
                     HeroController.instance.AddMPCharge(99);
+
                 ApplyGodMode();
+
                 if (_oneHitKill)
                     WeakenEnemies();
             }
@@ -87,7 +79,8 @@ namespace HKmenu
         {
             var hint = new GUIStyle(GUI.skin.label) { fontSize = 18 };
             hint.normal.textColor = Color.yellow;
-            GUI.Label(new Rect(16, 16, 460, 30), _showMenu ? "HK MENU OPEN   [F8]" : "HK MENU   [F8]", hint);
+            GUI.Label(new Rect(16, 16, 460, 30), _showMenu ? "HK MENU OPEN   [F1]" : "HK MENU   [F1]", hint);
+
             if (!_showMenu) return;
 
             InitStyles();
@@ -102,23 +95,26 @@ namespace HKmenu
             GUILayout.BeginArea(new Rect(105, 100, FrameWidth - 210, FrameHeight - 160));
             GUILayout.Label("HK TRAINER 1.7.1", _title);
             GUILayout.Space(6);
+
             _oneHitKill = GUILayout.Toggle(_oneHitKill, " One Hit Kill", _toggle);
             _infiniteSoul = GUILayout.Toggle(_infiniteSoul, " Infinite Soul", _toggle);
             _godMode = GUILayout.Toggle(_godMode, " God Mode", _toggle);
+
             GUILayout.Space(8);
             if (GUILayout.Button("+1,000 Geo", _button, GUILayout.Height(28)))
             {
                 if (HeroController.instance != null)
                     HeroController.instance.AddGeo(1000);
             }
+
             GUILayout.Space(8);
-            GUILayout.Label("[F8] to close", _note);
+            GUILayout.Label("[F1] to close", _note);
             GUILayout.EndArea();
+
             GUI.DragWindow(new Rect(0, 0, FrameWidth, 90));
         }
 
         private bool _loggedGodMode;
-
         private void ApplyGodMode()
         {
             var hero = HeroController.instance;
@@ -141,22 +137,27 @@ namespace HKmenu
                 }
 
                 SetBool(hero, "isInvincible", true);
+
                 if (PlayerData.instance != null)
                 {
                     SetBool(PlayerData.instance, "isInvincible", true);
                     if (PlayerData.instance.maxHealth > 0)
                         PlayerData.instance.health = PlayerData.instance.maxHealth;
                 }
+
                 _godWasOn = true;
             }
             else if (_godWasOn)
             {
                 SetMember(hero, "damageMode", "FULL_DAMAGE");
                 SetBool(hero, "isInvincible", false);
+
                 if (PlayerData.instance != null)
                     SetBool(PlayerData.instance, "isInvincible", false);
+
                 if (hero.cState != null)
                     hero.cState.invulnerable = false;
+
                 _godWasOn = false;
             }
         }
@@ -164,15 +165,18 @@ namespace HKmenu
         private static bool SetMember(object obj, string name, string enumName)
         {
             if (obj == null) return false;
+
             const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
             var field = obj.GetType().GetField(name, flags);
             if (field == null) return false;
+
             try
             {
                 if (field.FieldType.IsEnum)
                     field.SetValue(obj, Enum.Parse(field.FieldType, enumName));
                 else
                     field.SetValue(obj, 2);
+
                 return true;
             }
             catch
@@ -184,9 +188,11 @@ namespace HKmenu
         private static void SetBool(object obj, string name, bool value)
         {
             if (obj == null) return;
+
             const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
             var field = obj.GetType().GetField(name, flags);
             if (field == null || field.FieldType != typeof(bool)) return;
+
             try { field.SetValue(obj, value); }
             catch { }
         }
@@ -205,6 +211,7 @@ namespace HKmenu
         {
             string path = Path.Combine(Paths.PluginPath, "menu_frame.png");
             if (!File.Exists(path)) return;
+
             var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
             if (LoadPng(tex, File.ReadAllBytes(path)))
                 _frame = tex;
@@ -225,15 +232,20 @@ namespace HKmenu
         private void InitStyles()
         {
             if (_stylesReady) return;
+
             _empty = new GUIStyle();
             _title = new GUIStyle(GUI.skin.label) { fontSize = 12, alignment = TextAnchor.MiddleCenter };
             _title.normal.textColor = Color.white;
+
             _toggle = new GUIStyle(GUI.skin.toggle) { fontSize = 12 };
             _toggle.normal.textColor = new Color(0.8f, 0.8f, 0.85f);
             _toggle.onNormal.textColor = Color.white;
+
             _button = new GUIStyle(GUI.skin.button) { fontSize = 12 };
+
             _note = new GUIStyle(GUI.skin.label) { fontSize = 10, alignment = TextAnchor.MiddleCenter, wordWrap = true };
             _note.normal.textColor = new Color(0.7f, 0.7f, 0.75f);
+
             _stylesReady = true;
         }
 
@@ -250,6 +262,7 @@ namespace HKmenu
         private sealed class MenuHost : MonoBehaviour
         {
             internal HKModMenu Owner;
+
             private void OnGUI()
             {
                 if (Owner != null)
